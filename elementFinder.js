@@ -1,59 +1,40 @@
-const elementFinder = {
-    // Eleman arama fonksiyonu
-    startSearch: function() {
-        return new Promise((resolve, reject) => {
-            let attempts = 0;
+(async function() {
+    // Kullanıcıya ID mi yoksa CLASS mı aramak istediğini sor
+    let selectorType = prompt("ID mi, CLASS mı aramak istiyorsun? (id/class)").toLowerCase();
 
-            const askForSelector = () => {
-                const selectorType = prompt("ID mi, class mı aramak istiyorsunuz?").toLowerCase();
-                if (selectorType !== "id" && selectorType !== "class") {
-                    alert("Geçersiz seçim! Lütfen 'id' veya 'class' yazın.");
-                    return askForSelector();
-                }
-
-                const selectorName = prompt(`Aramak istediğiniz ${selectorType} adını yazın:`);
-                if (!selectorName) {
-                    alert("Geçersiz giriş! Lütfen geçerli bir id veya class adı girin.");
-                    return askForSelector();
-                }
-
-                // Arama işlemi başlatılıyor
-                this.searchElement(selectorType, selectorName, resolve, reject);
-            };
-
-            askForSelector();  // Seçim istemek için başlat
-        });
-    },
-
-    // Eleman arama işlemi
-    searchElement: function(selectorType, selectorName, resolve, reject) {
-        let element;
-
-        const interval = setInterval(() => {
-            if (selectorType === "id") {
-                element = document.getElementById(selectorName);
-            } else if (selectorType === "class") {
-                element = document.querySelector(`.${selectorName}`);
-            }
-
-            if (element) {
-                console.log("✅ Eleman bulundu!");
-                console.log(element.outerHTML);
-                clearInterval(interval);  // Arama durduruluyor
-                resolve(element);
-            } else {
-                console.log(`⏳ Bekleniyor... (${attempts + 1})`);
-            }
-
-            attempts++;
-            if (attempts >= 12) {  // 6 saniye (500ms x 12)
-                console.log("❌ Eleman bulunamadı!");
-                clearInterval(interval);
-                reject("Eleman bulunamadı");
-            }
-        }, 500);  // 500ms arayla kontrol et
+    if (selectorType !== "id" && selectorType !== "class") {
+        console.log("❌ Geçersiz seçim! 'id' veya 'class' yazmalısın.");
+        return;
     }
-};
 
-// Kütüphaneyi global olarak kullanıma sunuyoruz
-window.elementFinder = elementFinder;
+    // ID veya CLASS ismini sor
+    let selectorName = prompt(`Aramak istediğin ${selectorType} adını yaz:`);
+
+    if (!selectorName) {
+        console.log("❌ Boş değer girdin!");
+        return;
+    }
+
+    console.log(`⏳ ${selectorType.toUpperCase()}="${selectorName}" için tarama başlatılıyor...`);
+
+    let attempts = 0;
+    let interval = setInterval(() => {
+        let element = (selectorType === "id") 
+            ? document.getElementById(selectorName) 
+            : document.querySelector(`.${selectorName}`);
+
+        if (element) {
+            console.log(`✅ Eleman bulundu! (${selectorType.toUpperCase()}="${selectorName}")`);
+            console.log(element.outerHTML);
+            clearInterval(interval); // Aramayı durdur
+        } else {
+            console.log(`⏳ Bekleniyor... (${attempts + 1})`);
+        }
+
+        attempts++;
+        if (attempts >= 12) {  // 6 saniye (500ms x 12) sonra durdur
+            console.log(`❌ Eleman bulunamadı! (${selectorType.toUpperCase()}="${selectorName}")`);
+            clearInterval(interval);
+        }
+    }, 500);
+})();
