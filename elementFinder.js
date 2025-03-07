@@ -1,59 +1,51 @@
 const elementFinder = {
-    // Eleman arama fonksiyonu
     startSearch: function() {
         return new Promise((resolve, reject) => {
+            let selectorType = prompt("ID mi, CLASS mı aramak istiyorsun? (id/class)").toLowerCase();
+
+            if (selectorType !== "id" && selectorType !== "class") {
+                console.error("❌ Geçersiz seçim! 'id' veya 'class' yazmalısın.");
+                reject("Geçersiz seçim");
+                return;
+            }
+
+            let selectorName = prompt(`Aramak istediğin ${selectorType} adını yaz:`);
+
+            if (!selectorName) {
+                console.error("❌ Boş değer girdin!");
+                reject("Boş değer");
+                return;
+            }
+
+            console.log(`⏳ ${selectorType.toUpperCase()}="${selectorName}" için tarama başlatılıyor...`);
+
             let attempts = 0;
+            let interval = setInterval(() => {
+                let element = (selectorType === "id") 
+                    ? document.getElementById(selectorName) 
+                    : document.querySelector(`.${selectorName}`);
 
-            const askForSelector = () => {
-                const selectorType = prompt("ID mi, class mı aramak istiyorsunuz?").toLowerCase();
-                if (selectorType !== "id" && selectorType !== "class") {
-                    alert("Geçersiz seçim! Lütfen 'id' veya 'class' yazın.");
-                    return askForSelector();
+                if (element) {
+                    console.log(`✅ Eleman bulundu! (${selectorType.toUpperCase()}="${selectorName}")`);
+                    console.log(element.outerHTML);
+                    clearInterval(interval);
+                    resolve(element); // Elemanı döndür
+                } else {
+                    console.log(`⏳ Bekleniyor... (${attempts + 1})`);
                 }
 
-                const selectorName = prompt(`Aramak istediğiniz ${selectorType} adını yazın:`);
-                if (!selectorName) {
-                    alert("Geçersiz giriş! Lütfen geçerli bir id veya class adı girin.");
-                    return askForSelector();
+                attempts++;
+                if (attempts >= 12) {  
+                    console.error(`❌ Eleman bulunamadı! (${selectorType.toUpperCase()}="${selectorName}")`);
+                    clearInterval(interval);
+                    reject("Eleman bulunamadı");
                 }
-
-                // Arama işlemi başlatılıyor
-                this.searchElement(selectorType, selectorName, resolve, reject);
-            };
-
-            askForSelector();  // Seçim istemek için başlat
+            }, 500);
         });
-    },
-
-    // Eleman arama işlemi
-    searchElement: function(selectorType, selectorName, resolve, reject) {
-        let element;
-
-        const interval = setInterval(() => {
-            if (selectorType === "id") {
-                element = document.getElementById(selectorName);
-            } else if (selectorType === "class") {
-                element = document.querySelector(`.${selectorName}`);
-            }
-
-            if (element) {
-                console.log("✅ Eleman bulundu!");
-                console.log(element.outerHTML);
-                clearInterval(interval);  // Arama durduruluyor
-                resolve(element);
-            } else {
-                console.log(`⏳ Bekleniyor... (${attempts + 1})`);
-            }
-
-            attempts++;
-            if (attempts >= 12) {  // 6 saniye (500ms x 12)
-                console.log("❌ Eleman bulunamadı!");
-                clearInterval(interval);
-                reject("Eleman bulunamadı");
-            }
-        }, 500);  // 500ms arayla kontrol et
     }
 };
 
-// Kütüphaneyi global olarak kullanıma sunuyoruz
-window.elementFinder = elementFinder;
+// Modül olarak kullanmak için (isteğe bağlı)
+if (typeof module !== "undefined") {
+    module.exports = elementFinder;
+}
